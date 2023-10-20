@@ -6,7 +6,9 @@ import io.qameta.allure.Description;
 import io.qameta.allure.junit4.DisplayName;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
+import org.apache.http.HttpStatus;
 import org.hamcrest.Matchers;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -16,6 +18,7 @@ public class CourierLoginTest {
     public void setUp() {
         RestAssured.baseURI = "http://qa-scooter.praktikum-services.ru";
     }
+    Integer id;
 
     @Test
     @DisplayName("Вход курьера в систему")
@@ -31,9 +34,11 @@ public class CourierLoginTest {
         Response response = courierClient.sendPostRequestApiV1CourierLogin(courier);
         response.then()
                 .log().all()
-                .assertThat().body("id", Matchers.notNullValue()).and().statusCode(200);
+                .assertThat().body("id", Matchers.notNullValue()).and().statusCode(HttpStatus.SC_OK);
 
+        id = response.then().extract().path("id");
     }
+
 
     @Test
     @DisplayName("Вход курьера в систему без логина")
@@ -47,7 +52,7 @@ public class CourierLoginTest {
         response.then()
                 .log().all()
                 .assertThat().body("message", Matchers.is("Недостаточно данных для входа")).
-                and().statusCode(400);
+                and().statusCode(HttpStatus.SC_BAD_REQUEST);
 
     }
 
@@ -62,7 +67,9 @@ public class CourierLoginTest {
         Response response = courierClient.sendPostRequestApiV1CourierLogin(courier);
         response.then()
                 .log().all()
-                .assertThat().statusCode(400).and().body("message", Matchers.is("Недостаточно данных для входа"));
+                .assertThat().statusCode(HttpStatus.SC_BAD_REQUEST)
+                .and()
+                .body("message", Matchers.is("Недостаточно данных для входа"));
 
     }
 
@@ -77,7 +84,9 @@ public class CourierLoginTest {
         Response response = courierClient.sendPostRequestApiV1CourierLogin(courier);
         response.then()
                 .log().all()
-                .assertThat().body("message", Matchers.is("Учетная запись не найдена")).and().statusCode(404);
+                .assertThat().body("message", Matchers.is("Учетная запись не найдена"))
+                .and()
+                .statusCode(HttpStatus.SC_NOT_FOUND);
 
     }
 
@@ -92,7 +101,9 @@ public class CourierLoginTest {
         Response response = courierClient.sendPostRequestApiV1CourierLogin(courier);
         response.then()
                 .log().all()
-                .assertThat().body("message", Matchers.is("Учетная запись не найдена")).and().statusCode(404);
+                .assertThat().body("message", Matchers.is("Учетная запись не найдена"))
+                .and()
+                .statusCode(HttpStatus.SC_NOT_FOUND);
 
     }
 
@@ -107,7 +118,17 @@ public class CourierLoginTest {
         Response response = courierClient.sendPostRequestApiV1CourierLogin(courier);
         response.then()
                 .log().all()
-                .assertThat().body("message", Matchers.is("Учетная запись не найдена")).and().statusCode(404);
+                .assertThat().body("message", Matchers.is("Учетная запись не найдена"))
+                .and()
+                .statusCode(HttpStatus.SC_NOT_FOUND);
+    }
+
+    @After
+    public void tearDown() {
+        if (id != null) {
+            CourierClient courierClient = new CourierClient();
+            courierClient.deleteCourierRequest(id);
+        }
     }
 }
 

@@ -1,5 +1,6 @@
 package tests.order;
 
+import api.client.OrderClient;
 import api.model.Colors;
 import api.model.Order;
 import io.qameta.allure.Description;
@@ -7,6 +8,7 @@ import io.qameta.allure.junit4.DisplayName;
 import io.qameta.allure.restassured.AllureRestAssured;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
+import org.apache.http.HttpStatus;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
@@ -52,13 +54,11 @@ public class CreateOrderTest {
     @DisplayName("Создание заказа")
     @Description("Успешное создание заказа с разными параметрами")
     public void createOrderTest() {
-        Response response = RestAssured.given()
+        OrderClient orderClient = new OrderClient();
+
+        Response response = orderClient.sendPostRequestApiV1OrdersCreate(order);
+        response.then()
                 .log().all()
-                .header("Content-type", "application/json")
-                .body(order)
-                .when()
-                .post("/api/v1/orders");
-        response.then().log().all()
-                .assertThat().body("track", Matchers.notNullValue()).and().statusCode(201);
+                .assertThat().body("track", Matchers.notNullValue()).and().statusCode(HttpStatus.SC_CREATED);
     }
 }

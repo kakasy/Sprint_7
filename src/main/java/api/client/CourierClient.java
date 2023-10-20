@@ -9,6 +9,9 @@ import io.restassured.response.Response;
 
 
 public class CourierClient {
+
+    private static final String ENDPOINT = "/api/v1/courier";
+
     @Step("Send POST request to /api/v1/courier/login")
     @DisplayName("Логин курьера в системе")
     public Response sendPostRequestApiV1CourierLogin(Courier courier){
@@ -18,7 +21,7 @@ public class CourierClient {
                 .header("Content-type", "application/json")
                 .body(courier)
                 .when()
-                .post("/api/v1/courier/login");
+                .post(ENDPOINT + "/login");
     }
 
     @Step("Send POST request to /api/v1/courier")
@@ -29,7 +32,17 @@ public class CourierClient {
                 .header("Content-type", "application/json")
                 .body(courier)
                 .when()
-                .post("/api/v1/courier");
+                .post(ENDPOINT);
+    }
+
+    @Step("Удаление курьера")
+    public Response deleteCourierRequest(Integer id) {
+        return RestAssured.given()
+                .log().all()
+                .header("Content-type", "application/json")
+                .pathParam("id", id)
+                .when()
+                .delete(ENDPOINT + "/{id}");
     }
 
 }

@@ -7,7 +7,9 @@ import io.qameta.allure.junit4.DisplayName;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.http.HttpStatus;
 import org.hamcrest.Matchers;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -17,6 +19,8 @@ public class CreateCourierTest {
     public void setUp() {
         RestAssured.baseURI = "http://qa-scooter.praktikum-services.ru";
     }
+
+    Integer id;
 
 
     @Test
@@ -33,7 +37,7 @@ public class CreateCourierTest {
         Response response = courierClient.sendPostRequestApiV1CourierCreate(courier);
         response.then()
                 .log().all() // логироваание
-                .assertThat().body("ok", Matchers.is(true)).and().statusCode(201);
+                .assertThat().body("ok", Matchers.is(true)).and().statusCode(HttpStatus.SC_CREATED);
     }
 
     @Test
@@ -52,7 +56,11 @@ public class CreateCourierTest {
         Response response = courierClient.sendPostRequestApiV1CourierCreate(courier);
         response.then()
                 .log().all()
-                .assertThat().body("message", Matchers.notNullValue()).and().statusCode(409);
+                .assertThat().body("message", Matchers.notNullValue()).and().statusCode(HttpStatus.SC_CONFLICT);
+
+        Response response2 = courierClient.sendPostRequestApiV1CourierLogin(courier);
+
+        id = response2.then().extract().path("id");
     }
 
     @Test
@@ -74,7 +82,7 @@ public class CreateCourierTest {
         courier.setPassword("strongpass");
         Response response = courierClient.sendPostRequestApiV1CourierCreate(courier);
         response.then().log().all()
-                .assertThat().body("message", Matchers.notNullValue()).and().statusCode(409);
+                .assertThat().body("message", Matchers.notNullValue()).and().statusCode(HttpStatus.SC_CONFLICT);
     }
 
     @Test
@@ -89,7 +97,7 @@ public class CreateCourierTest {
         Response response = courierClient.sendPostRequestApiV1CourierCreate(courier);
         response.then()
                 .log().all()
-                .assertThat().body("message", Matchers.notNullValue()).and().statusCode(400);
+                .assertThat().body("message", Matchers.notNullValue()).and().statusCode(HttpStatus.SC_BAD_REQUEST);
     }
 
     @Test
@@ -104,7 +112,7 @@ public class CreateCourierTest {
         Response response = courierClient.sendPostRequestApiV1CourierCreate(courier);
         response.then()
                 .log().all()
-                .assertThat().body("message", Matchers.notNullValue()).and().statusCode(400);
+                .assertThat().body("message", Matchers.notNullValue()).and().statusCode(HttpStatus.SC_BAD_REQUEST);
     }
 
     @Test
@@ -119,7 +127,7 @@ public class CreateCourierTest {
         Response response = courierClient.sendPostRequestApiV1CourierCreate(courier);
         response.then()
                 .log().all()
-                .assertThat().body("message", Matchers.notNullValue()).and().statusCode(400);
+                .assertThat().body("message", Matchers.notNullValue()).and().statusCode(HttpStatus.SC_BAD_REQUEST);
     }
 
     @Test
@@ -136,7 +144,7 @@ public class CreateCourierTest {
         Response response = courierClient.sendPostRequestApiV1CourierCreate(courier);
         response.then()
                 .log().all()
-                .assertThat().body("message", Matchers.notNullValue()).and().statusCode(400);
+                .assertThat().body("message", Matchers.notNullValue()).and().statusCode(HttpStatus.SC_BAD_REQUEST);
     }
 
     @Test
@@ -153,6 +161,14 @@ public class CreateCourierTest {
         Response response = courierClient.sendPostRequestApiV1CourierCreate(courier);
         response.then()
                 .log().all()
-                .assertThat().body("message", Matchers.notNullValue()).and().statusCode(400);
+                .assertThat().body("message", Matchers.notNullValue()).and().statusCode(HttpStatus.SC_BAD_REQUEST);
+    }
+
+    @After
+    public void tearDown() {
+        if (id != null) {
+            CourierClient courierClient = new CourierClient();
+            courierClient.deleteCourierRequest(id);
+        }
     }
 }
